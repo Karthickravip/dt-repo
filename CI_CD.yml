@@ -1,0 +1,32 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+
+- task: UseDotNet@2
+  inputs:
+    version: '3.1.200'
+- task: DotNetCoreCLI@2
+  displayName: Install CycloneDX
+  inputs:
+    command: 'custom'
+    custom: 'tool'
+    arguments: 'install --global CycloneDX'
+
+- task: DotNetCoreCLI@2
+  displayName: Create BOM File
+  inputs:
+   command: 'custom'
+   custom: 'CycloneDX'
+   arguments: '-d $(Build.Repository.LocalPath)/Commander/Commander.csproj -o $(Agent.TempDirectory)'
+
+- task: upload-bom-dtrack-task@1
+  displayName: 'Upload BOM to https://dependencycontainer.azurewebsites.net'
+  inputs:
+    bomFilePath: '$(Agent.TempDirectory)/bom.xml'
+    dtrackProjId: 'e9d91a00-28a2-419e-aaf6-8a34654428f3'
+    dtrackAPIKey: 'r0Nb5e9ac6DzF9l8GIN9f5wS0Hrn0MqQ'
+    dtrackURI: 'https://dependencytrackerrik1kor.azurewebsites.net
